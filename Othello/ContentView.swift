@@ -51,31 +51,49 @@ struct ContentView: View {
   }
 
   func updateBoard(x: Int, y: Int) {
-    // 盤面の範囲内で隣接するマスを確認
-    for dx in -1...1 {
-      for dy in -1...1 {
-        if dx == 0 && dy == 0 { continue } // 同じマスはスキップ
+      var validDirections: [(Int, Int)] = []
 
-        let newRow = x + dx
-        let newColumn = y + dy
+      // 盤面の範囲内で隣接するマスを確認
+      for dx in -1...1 {
+          for dy in -1...1 {
+              if dx == 0 && dy == 0 { continue } // 同じマスはスキップ
 
-        // 範囲外チェック
-        if newRow < 0 || newRow >= rows || newColumn < 0 || newColumn >= columns { continue }
-
-        // 隣接するマスが相手の駒であるか確認
-        if board[newRow][newColumn] == 3 - turn {
-          // この部分で、更にその方向を確認し、自分の駒を見つけるまで続けるロジックを追加する
-          // ここでは省略しています
-
-          // 自分の駒に変更
-          board[x][y] = turn
-
-
-        }
+              let pieces = checkDirection(x: x, y: y, dx: dx, dy: dy)
+              if !pieces.isEmpty {
+                  validDirections.append(contentsOf: pieces)
+              }
+          }
       }
-    }
-    turn = 3 - turn
-    print("次のターン",turn)
+
+      if !validDirections.isEmpty {
+          board[x][y] = turn
+          // 有効な方向の駒を反転
+          for (flipX, flipY) in validDirections {
+              board[flipX][flipY] = turn
+          }
+          turn = 3 - turn
+          print("次のターン", turn)
+      }
+  }
+
+  func checkDirection(x: Int, y: Int, dx: Int, dy: Int) -> [(Int, Int)] {
+      var newX = x + dx
+      var newY = y + dy
+      var piecesToFlip: [(Int, Int)] = []
+
+      while newX >= 0 && newX < rows && newY >= 0 && newY < columns {
+          if board[newX][newY] == 3 - turn {
+              piecesToFlip.append((newX, newY))
+              newX += dx
+              newY += dy
+          } else if board[newX][newY] == turn {
+              return piecesToFlip
+          } else {
+              break
+          }
+      }
+
+      return []
   }
   // 特定の位置の駒のビューを生成
   func pieceView(at x: Int, y: Int) -> some View {
