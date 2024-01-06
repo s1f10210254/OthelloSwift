@@ -12,7 +12,7 @@ struct ContentView: View {
   let columns = 8
   @State private var board: [[Int]] = Array(repeating: Array(repeating: 0, count: 8), count: 8)
   @State private var turn: Int = 1
-  
+
   var body: some View {
     VStack{
       ForEach(0..<rows, id: \.self) { row in
@@ -39,40 +39,43 @@ struct ContentView: View {
       board[4][3] = 2 // 白
     }
   }
-  
-  
+
+
   // マスがクリックされたときの処理
   func onClick(x: Int, y: Int) {
     print("マス (\(x), \(y))がクリックされました")
     if board[x][y] == 0{
       updateBoard(x: x, y: y)
     }
-    turn = 3 - turn
-    print("次のターン",turn)
+
   }
-  
+
   func updateBoard(x: Int, y: Int) {
     // 盤面の範囲内で隣接するマスを確認
     for dx in -1...1 {
       for dy in -1...1 {
         if dx == 0 && dy == 0 { continue } // 同じマスはスキップ
-        
+
         let newRow = x + dx
         let newColumn = y + dy
-        
+
         // 範囲外チェック
         if newRow < 0 || newRow >= rows || newColumn < 0 || newColumn >= columns { continue }
-        
+
         // 隣接するマスが相手の駒であるか確認
         if board[newRow][newColumn] == 3 - turn {
           // この部分で、更にその方向を確認し、自分の駒を見つけるまで続けるロジックを追加する
           // ここでは省略しています
-          
+
           // 自分の駒に変更
           board[x][y] = turn
+
+
         }
       }
     }
+    turn = 3 - turn
+    print("次のターン",turn)
   }
   // 特定の位置の駒のビューを生成
   func pieceView(at x: Int, y: Int) -> some View {
@@ -87,7 +90,7 @@ struct ContentView: View {
       }
     }
   }
-  
+
   // 駒の状態に応じた色を返す
   func pieceColor(_ piece: Int) -> Color {
     switch piece {
