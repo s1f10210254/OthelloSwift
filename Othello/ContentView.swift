@@ -32,20 +32,19 @@ struct ContentView: View {
     [2, 1, 2, 1, 2, 1, 2, 1]
   ]
 
-
+  @State private var board: [[Int]]
   @State private var turn: Int = 1
   @State private var passCount: Int = 0
   @State private var showingAlert:Bool = false
   @State private var alertTitle = ""
   @State private var alertMessage = ""
-  @State private var board: [[Int]]
   @State private var possibleMoves: [(Int, Int)] = []
   @State private var blackCount: Int = 0
   @State private var whiteCount: Int = 0
   @State private var passMessage: String = ""
 
   init() {
-    _board = State(initialValue: finalBoard5) // 初期状態で初期化
+    _board = State(initialValue: initialBoard) // 初期状態で初期化
   }
 
   var body: some View {
