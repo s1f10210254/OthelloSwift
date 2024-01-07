@@ -1,10 +1,3 @@
-//
-//  ContentView.swift
-//  Othello
-//
-//  Created by Hiroki on 2024/01/07.
-//
-
 import SwiftUI
 
 struct ContentView: View {
@@ -20,26 +13,6 @@ struct ContentView: View {
     [0, 0, 0, 0, 0, 0, 0, 0], // 7行目
     [0, 0, 0, 0, 0, 0, 0, 0]  // 8行目
   ]
-  let finalBoard: [[Int]] = [
-    [1, 2, 1, 2, 1, 2, 1, 2],
-    [2, 1, 2, 1, 2, 1, 2, 1],
-    [1, 2, 1, 2, 1, 2, 1, 2],
-    [2, 1, 2, 1, 2, 1, 2, 1],
-    [1, 2, 1, 2, 1, 2, 1, 2],
-    [2, 1, 2, 1, 2, 1, 2, 1],
-    [1, 2, 1, 0, 0, 0, 1, 2], // この行に3つの空きマスを作成
-    [2, 1, 2, 1, 2, 1, 2, 1]
-  ]
-  let finalBoard5: [[Int]] = [
-    [1, 2, 1, 2, 1, 2, 1, 2],
-    [2, 1, 2, 1, 2, 1, 2, 1],
-    [1, 2, 1, 2, 1, 2, 1, 2],
-    [2, 1, 2, 1, 2, 0, 0, 0], // この行に3つの空きマスを配置
-    [1, 2, 1, 2, 1, 2, 1, 2],
-    [2, 1, 2, 1, 0, 1, 2, 1], // この行に1つの空きマスを配置
-    [1, 2, 1, 0, 1, 2, 1, 2], // この行に1つの空きマスを配置
-    [2, 1, 2, 1, 2, 1, 2, 1]
-  ]
 
   let PassBoard: [[Int]] = [
     [2, 2, 2, 2, 2, 2, 2, 2],
@@ -52,16 +25,6 @@ struct ContentView: View {
     [2, 2, 2, 2, 0, 0, 0, 0]
   ]
 
-  let debugBoard: [[Int]] = [
-    [1, 2, 1, 2, 1, 2, 1, 2],
-    [2, 1, 2, 1, 2, 1, 2, 1],
-    [1, 2, 1, 2, 1, 2, 1, 2],
-    [2, 1, 2, 1, 2, 1, 2, 1],
-    [1, 2, 1, 2, 1, 0, 1, 2], // ここに黒が置くと...
-    [2, 1, 2, 1, 2, 2, 2, 1], // 白も黒も置けなくなる
-    [1, 2, 1, 2, 1, 1, 1, 2],
-    [2, 1, 2, 1, 2, 1, 2, 1]
-  ]
   let blackForcesWhitePassBoard: [[Int]] = [
     [0, 0, 0, 0, 0, 0, 0, 0], // 1行目
     [0, 0, 0, 0, 0, 0, 0, 0], // 2行目
@@ -150,7 +113,6 @@ struct ContentView: View {
     if board[x][y] == 0 && isMoveValid(x: x, y: y){
       updateBoard(x: x, y: y)
     }
-
   }
 
   // 指定されたマスに駒を置くことが有効かどうかを判断
@@ -205,19 +167,8 @@ struct ContentView: View {
       turn = 3 - turn
       PiceCounts()
       print("次のターン", turn)
-      if isBoardFull(){
-
-        let winner = blackCount > whiteCount ? "黒の勝ち" : (blackCount < whiteCount ? "白の勝ち" : "引き分け")
-        alertTitle = "ゲーム終了"
-        alertMessage = "黒: \(blackCount), 白: \(whiteCount), 勝者: \(winner)"
-
-        showingAlert = true
-        //        resetGame()
-      }else{
-        checkNextTurnMoves()
-
-      }
     }
+    checkNextTurnMoves()
   }
 
   func isBoardFull() -> Bool {
@@ -266,20 +217,41 @@ struct ContentView: View {
     if possibleMoves.isEmpty{
       passCount+=1
       passMessage = turn == 1 ? "黒がパスしました" : "白がパスしました"
-
-      if(passCount >= 2  || blackCount == 0 || whiteCount == 0){
-        let winner = blackCount > whiteCount ? "黒の勝ち" : (blackCount < whiteCount ? "白の勝ち" : "引き分け")
-        alertTitle = "ゲーム終了"
-        alertMessage = "黒: \(blackCount), 白: \(whiteCount), 勝者: \(winner)"
-
-        showingAlert = true
-        //        resetGame()
+      turn = 3 - turn
+      checkPossibleMovesAfterPass()
+      if(passCount >= 2  || blackCount == 0 || whiteCount == 0 || isBoardFull()){
+        endGame()
       }
     }else{
       passCount = 0
       passMessage = ""
-
     }
+  }
+
+  func checkPossibleMovesAfterPass() {
+      possibleMoves = []
+      for row in 0..<rows {
+          for col in 0..<columns {
+              if board[row][col] == 0 && isMoveValid(x: row, y: col) {
+                  possibleMoves.append((row, col))
+              }
+          }
+      }
+      if possibleMoves.isEmpty {
+          // 連続パスの場合
+          passCount += 1
+          passMessage = turn == 1 ? "黒がパスしました" : "白がパスしました"
+      } else {
+          // パス後に候補地が存在する場合
+          passCount = 0
+          passMessage = ""
+      }
+  }
+  func endGame() {
+      let winner = blackCount > whiteCount ? "黒の勝ち" : (blackCount < whiteCount ? "白の勝ち" : "引き分け")
+      alertTitle = "ゲーム終了"
+      alertMessage = "黒: \(blackCount), 白: \(whiteCount), 勝者: \(winner)"
+      showingAlert = true
   }
 
   func PiceCounts(){
@@ -298,7 +270,6 @@ struct ContentView: View {
 
     blackCount = newBlackCount
     whiteCount = newWhiteCount
-
   }
   func resetGame() {
     // 盤面を初期状態にリセット
@@ -307,11 +278,6 @@ struct ContentView: View {
     turn = 1
     // パスカウントをリセット
     passCount = 0
-    // 初期の駒の配置
-    board[3][3] = 1 // 黒
-    board[4][4] = 1 // 黒
-    board[3][4] = 2 // 白
-    board[4][3] = 2 // 白
     PiceCounts()
     checkNextTurnMoves()
   }
