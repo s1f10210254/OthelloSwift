@@ -81,7 +81,7 @@ struct ContentView: View {
             }
           }
         }
-        .background(Color.black) // HStackの背景を黒色に設定
+        .background(Color.black)
       }
       .alert(isPresented: $showingAlert) {
         Alert(
@@ -103,6 +103,8 @@ struct ContentView: View {
     }
     Text("\(passMessage)").font(.headline)
   }
+
+
 
 
 
@@ -314,6 +316,8 @@ struct ContentView: View {
     }
   }
 }
+
+
 
 #Preview {
   ContentView()
