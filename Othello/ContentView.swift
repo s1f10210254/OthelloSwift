@@ -10,17 +10,52 @@ import SwiftUI
 struct ContentView: View {
   let rows = 8
   let columns = 8
-  @State private var board: [[Int]] = Array(repeating: Array(repeating: 0, count: 8), count: 8)
+  let initialBoard: [[Int]] = Array(repeating: Array(repeating: 0, count: 8), count: 8)
+  let finalBoard: [[Int]] = [
+    [1, 2, 1, 2, 1, 2, 1, 2],
+    [2, 1, 2, 1, 2, 1, 2, 1],
+    [1, 2, 1, 2, 1, 2, 1, 2],
+    [2, 1, 2, 1, 2, 1, 2, 1],
+    [1, 2, 1, 2, 1, 2, 1, 2],
+    [2, 1, 2, 1, 2, 1, 2, 1],
+    [1, 2, 1, 0, 0, 0, 1, 2], // この行に3つの空きマスを作成
+    [2, 1, 2, 1, 2, 1, 2, 1]
+  ]
+  let finalBoard5: [[Int]] = [
+    [1, 2, 1, 2, 1, 2, 1, 2],
+    [2, 1, 2, 1, 2, 1, 2, 1],
+    [1, 2, 1, 2, 1, 2, 1, 2],
+    [2, 1, 2, 1, 2, 0, 0, 0], // この行に3つの空きマスを配置
+    [1, 2, 1, 2, 1, 2, 1, 2],
+    [2, 1, 2, 1, 0, 1, 2, 1], // この行に1つの空きマスを配置
+    [1, 2, 1, 0, 1, 2, 1, 2], // この行に1つの空きマスを配置
+    [2, 1, 2, 1, 2, 1, 2, 1]
+  ]
+
+
   @State private var turn: Int = 1
   @State private var passCount: Int = 0
   @State private var showingAlert:Bool = false
-  @State private var alertTitle:String = ""
-  @State private var alertMessage:String = ""
+  @State private var alertTitle = ""
+  @State private var alertMessage = ""
+  @State private var board: [[Int]]
+  @State private var possibleMoves: [(Int, Int)] = []
+  @State private var blackCount: Int = 0
+  @State private var whiteCount: Int = 0
 
+
+  init() {
+    _board = State(initialValue: finalBoard5) // 初期状態で初期化
+  }
 
   var body: some View {
     Text("OthelloGame")
       .font(.largeTitle)
+    HStack {
+      Text("黒: \(blackCount)")
+      Text("白: \(whiteCount)")
+    }
+    .font(.headline)
 
     Text(turn == 1 ? "黒のターン" : "白のターン")
       .font(.headline)
@@ -45,11 +80,7 @@ struct ContentView: View {
         Alert(
           title: Text(alertTitle),
           message: Text(alertMessage),
-          dismissButton: .default(Text("OK")) {
-            if passCount == 2 {
-              resetGame() // ゲームをリセットする
-            }
-          }
+          dismissButton: .default(Text("OK"))
         )
       }
 
@@ -62,6 +93,8 @@ struct ContentView: View {
       board[4][4] = 1 // 黒
       board[3][4] = 2 // 白
       board[4][3] = 2 // 白
+      PiceCounts()
+      checkNextTurnMoves()
     }
   }
 
@@ -69,26 +102,22 @@ struct ContentView: View {
   //   マスがクリックされたときの処理
   func onClick(x: Int, y: Int) {
     print("マス (\(x), \(y))がクリックされました")
+    //置けたますの場合に先に進む
     if board[x][y] == 0 && isMoveValid(x: x, y: y){
       updateBoard(x: x, y: y)
     }
 
   }
 
-
-  //  // 盤面を更新する
-  //  func updateBoard(x: Int, y: Int, validDirections: [(Int, Int)]) {
-  //    board[x][y] = turn
-  //    for (flipX, flipY) in validDirections {
-  //      board[flipX][flipY] = turn
-  //    }
-  //    turn = 3 - turn
-  //    print("次のターン", turn)
-  //  }
-
   // 指定されたマスに駒を置くことが有効かどうかを判断
   func isMoveValid(x: Int, y: Int) -> Bool {
     let validDirections = checkAllDirections(x: x, y: y)
+    print("置けるので進む",!validDirections.isEmpty)
+    print("コマを置いた場所に反転させることができるコマのリスト",validDirections)
+    if(validDirections.isEmpty){
+      print("そのマスにはおけない")
+      return false
+    }
     return !validDirections.isEmpty
   }
 
@@ -104,6 +133,7 @@ struct ContentView: View {
         }
       }
     }
+    //    print("aaaaa",validDirections)
     return validDirections
   }
 
@@ -121,6 +151,7 @@ struct ContentView: View {
         }
       }
     }
+    print("check",validDirections)
 
     if !validDirections.isEmpty {
       board[x][y] = turn
@@ -129,16 +160,29 @@ struct ContentView: View {
         board[flipX][flipY] = turn
       }
       turn = 3 - turn
-      passCount = 0
+      PiceCounts()
       print("次のターン", turn)
-    }else{
-      turn = 3 - turn
-      passCount += 1
-      alertTitle = passCount == 2 ? "ゲーム終了": "パスしました"
-      alertMessage = passCount == 2 ? "パスが2回連続しました。" : "置けるコマがありません。"
-      showingAlert = true // アラートを表示
-    }
+      if isBoardFull(){
+        alertTitle = "ゲーム終了"
+        alertMessage = ""
+        showingAlert = true
+        resetGame()
+      }else{
+        checkNextTurnMoves()
 
+      }
+    }
+  }
+
+  func isBoardFull() -> Bool {
+    for row in board {
+      for cell in row {
+        if cell == 0 { // 空のマスがある場合
+          return false
+        }
+      }
+    }
+    return true // 全てのマスが埋まっている場合
   }
 
 
@@ -163,30 +207,75 @@ struct ContentView: View {
     return []
   }
 
+  func checkNextTurnMoves() {
+    possibleMoves = []
+    for row in 0..<rows {
+      for col in 0..<columns {
+        if board[row][col] == 0 && isMoveValid(x: row, y: col) {
+          possibleMoves.append((row, col))
+        }
+      }
+    }
+    print("次のターンの可能な手: \(possibleMoves)")
+    if possibleMoves.isEmpty{
+      passCount+=1
+      alertTitle = "パス"
+      alertMessage = "ターンが切り替わりました"
+      showingAlert = true
+      if(passCount >= 2){
+        resetGame()
+      }
+    }else{
+      passCount = 0
+    }
+  }
+
+  func PiceCounts(){
+    var newBlackCount = 0
+    var newWhiteCount = 0
+
+    for row in board {
+      for cell in row {
+        if cell == 1 {
+          newBlackCount += 1
+        } else if cell == 2 {
+          newWhiteCount += 1
+        }
+      }
+    }
+
+    blackCount = newBlackCount
+    whiteCount = newWhiteCount
+
+  }
   func resetGame() {
     // 盤面を初期状態にリセット
-    board = Array(repeating: Array(repeating: 0, count: 8), count: 8)
-
+    board = initialBoard
     // ターンを初期プレイヤーに設定
     turn = 1
-
     // パスカウントをリセット
     passCount = 0
-
     // 初期の駒の配置
     board[3][3] = 1 // 黒
     board[4][4] = 1 // 黒
     board[3][4] = 2 // 白
     board[4][3] = 2 // 白
+    PiceCounts()
+    checkNextTurnMoves()
   }
   // 特定の位置の駒のビューを生成
   func pieceView(at x: Int, y: Int) -> some View {
     let piece = board[x][y]
+    let isPossibleMove = possibleMoves.contains(where: { $0 == (x, y) })
     return Group{
       if piece != 0 {
         Circle()
           .foregroundColor(pieceColor(piece))
-      }else{
+      }else if isPossibleMove {
+        Rectangle()
+          .foregroundColor(Color.yellow.opacity(0.7)) // ハイライト色
+
+      } else{
         Rectangle()
           .foregroundColor(pieceColor(piece))
       }
