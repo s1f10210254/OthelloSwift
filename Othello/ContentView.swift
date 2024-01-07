@@ -10,7 +10,16 @@ import SwiftUI
 struct ContentView: View {
   let rows = 8
   let columns = 8
-  let initialBoard: [[Int]] = Array(repeating: Array(repeating: 0, count: 8), count: 8)
+  let initialBoard: [[Int]] = [
+      [0, 0, 0, 0, 0, 0, 0, 0], // 1行目
+      [0, 0, 0, 0, 0, 0, 0, 0], // 2行目
+      [0, 0, 0, 0, 0, 0, 0, 0], // 3行目
+      [0, 0, 0, 1, 2, 0, 0, 0], // 4行目
+      [0, 0, 0, 2, 1, 0, 0, 0], // 5行目
+      [0, 0, 0, 0, 0, 0, 0, 0], // 6行目
+      [0, 0, 0, 0, 0, 0, 0, 0], // 7行目
+      [0, 0, 0, 0, 0, 0, 0, 0]  // 8行目
+  ]
   let finalBoard: [[Int]] = [
     [1, 2, 1, 2, 1, 2, 1, 2],
     [2, 1, 2, 1, 2, 1, 2, 1],
@@ -32,6 +41,41 @@ struct ContentView: View {
     [2, 1, 2, 1, 2, 1, 2, 1]
   ]
 
+  let PassBoard: [[Int]] = [
+      [2, 2, 2, 2, 2, 2, 2, 2],
+      [2, 2, 2, 2, 2, 2, 2, 2],
+      [2, 2, 1, 2, 2, 2, 2, 2],
+      [2, 1, 1, 2, 2, 1, 2, 2],
+      [2, 1, 1, 2, 1, 0, 0, 2],
+      [2, 2, 1, 0, 1, 0, 0, 0],
+      [2, 2, 2, 0, 0, 0, 0, 0],
+      [2, 2, 2, 2, 0, 0, 0, 0]
+  ]
+
+  let debugBoard: [[Int]] = [
+      [1, 2, 1, 2, 1, 2, 1, 2],
+      [2, 1, 2, 1, 2, 1, 2, 1],
+      [1, 2, 1, 2, 1, 2, 1, 2],
+      [2, 1, 2, 1, 2, 1, 2, 1],
+      [1, 2, 1, 2, 1, 0, 1, 2], // ここに黒が置くと...
+      [2, 1, 2, 1, 2, 2, 2, 1], // 白も黒も置けなくなる
+      [1, 2, 1, 2, 1, 1, 1, 2],
+      [2, 1, 2, 1, 2, 1, 2, 1]
+  ]
+  let blackForcesWhitePassBoard: [[Int]] = [
+    [0, 0, 0, 0, 0, 0, 0, 0], // 1行目
+    [0, 0, 0, 0, 0, 0, 0, 0], // 2行目
+    [0, 0, 0, 0, 0, 0, 0, 0], // 3行目
+    [0, 0, 0, 1, 2, 0, 0, 0], // 4行目
+    [0, 0, 0, 1, 1, 0, 0, 0], // 5行目
+    [0, 0, 0, 0, 0, 0, 0, 0], // 6行目
+    [0, 0, 0, 0, 0, 0, 0, 0], // 7行目
+    [0, 0, 0, 0, 0, 0, 0, 0]  // 8行目
+  ]
+
+
+
+
   @State private var board: [[Int]]
   @State private var turn: Int = 1
   @State private var passCount: Int = 0
@@ -44,7 +88,8 @@ struct ContentView: View {
   @State private var passMessage: String = ""
 
   init() {
-    _board = State(initialValue: initialBoard) // 初期状態で初期化
+//    _board = State(initialValue: blackForcesWhitePassBoard) // 初期状態で初期化
+    _board = State(initialValue: initialBoard)
   }
 
   var body: some View {
@@ -89,11 +134,6 @@ struct ContentView: View {
     .background(Color.black)
 
     .onAppear {
-      // 初期配置の設定
-      board[3][3] = 1 // 黒
-      board[4][4] = 1 // 黒
-      board[3][4] = 2 // 白
-      board[4][3] = 2 // 白
       PiceCounts()
       checkNextTurnMoves()
     }
@@ -225,7 +265,7 @@ struct ContentView: View {
       passCount+=1
       passMessage = turn == 1 ? "黒がパスしました" : "白がパスしました"
 
-      if(passCount >= 2){
+      if(passCount >= 2  || blackCount == 0 || whiteCount == 0){
         let winner = blackCount > whiteCount ? "黒の勝ち" : (blackCount < whiteCount ? "白の勝ち" : "引き分け")
         alertTitle = "ゲーム終了"
         alertMessage = "黒: \(blackCount), 白: \(whiteCount), 勝者: \(winner)"
