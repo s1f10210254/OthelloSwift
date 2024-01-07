@@ -40,7 +40,7 @@ struct ContentView: View {
     [1, 2, 1, 0, 1, 2, 1, 2], // この行に1つの空きマスを配置
     [2, 1, 2, 1, 2, 1, 2, 1]
   ]
-  
+
   let PassBoard: [[Int]] = [
     [2, 2, 2, 2, 2, 2, 2, 2],
     [2, 2, 2, 2, 2, 2, 2, 2],
@@ -51,7 +51,7 @@ struct ContentView: View {
     [2, 2, 2, 0, 0, 0, 0, 0],
     [2, 2, 2, 2, 0, 0, 0, 0]
   ]
-  
+
   let debugBoard: [[Int]] = [
     [1, 2, 1, 2, 1, 2, 1, 2],
     [2, 1, 2, 1, 2, 1, 2, 1],
@@ -72,10 +72,10 @@ struct ContentView: View {
     [0, 0, 0, 0, 0, 0, 0, 0], // 7行目
     [0, 0, 0, 0, 0, 0, 0, 0]  // 8行目
   ]
-  
-  
-  
-  
+
+
+
+
   @State private var board: [[Int]]
   @State private var turn: Int = 1
   @State private var passCount: Int = 0
@@ -86,12 +86,12 @@ struct ContentView: View {
   @State private var blackCount: Int = 0
   @State private var whiteCount: Int = 0
   @State private var passMessage: String = ""
-  
+
   init() {
     //    _board = State(initialValue: blackForcesWhitePassBoard) // 初期状態で初期化
     _board = State(initialValue: initialBoard)
   }
-  
+
   var body: some View {
     Text("OthelloGame")
       .font(.largeTitle)
@@ -100,7 +100,7 @@ struct ContentView: View {
       Text("白: \(whiteCount)")
     }
     .font(.headline)
-    
+
     Text(turn == 1 ? "黒のターン" : "白のターン")
       .font(.headline)
       .padding()
@@ -129,17 +129,20 @@ struct ContentView: View {
           })
         )
       }
-      
+
     }
     .background(Color.black)
-    
+
+
     .onAppear {
       PiceCounts()
       checkNextTurnMoves()
     }
+    Text("\(passMessage)").font(.headline)
   }
-  
-  
+
+
+
   //   マスがクリックされたときの処理
   func onClick(x: Int, y: Int) {
     print("マス (\(x), \(y))がクリックされました")
@@ -147,9 +150,9 @@ struct ContentView: View {
     if board[x][y] == 0 && isMoveValid(x: x, y: y){
       updateBoard(x: x, y: y)
     }
-    
+
   }
-  
+
   // 指定されたマスに駒を置くことが有効かどうかを判断
   func isMoveValid(x: Int, y: Int) -> Bool {
     let validDirections = checkAllDirections(x: x, y: y)
@@ -161,7 +164,7 @@ struct ContentView: View {
     }
     return !validDirections.isEmpty
   }
-  
+
   // すべての方向をチェックして、反転可能な駒のリストを返す関数
   func checkAllDirections(x: Int, y: Int) -> [(Int, Int)] {
     var validDirections: [(Int, Int)] = []
@@ -176,15 +179,15 @@ struct ContentView: View {
     }
     return validDirections
   }
-  
+
   func updateBoard(x: Int, y: Int) {
     var validDirections: [(Int, Int)] = []
-    
+
     // 盤面の範囲内で隣接するマスを確認
     for dx in -1...1 {
       for dy in -1...1 {
         if dx == 0 && dy == 0 { continue } // 同じマスはスキップ
-        
+
         let pieces = checkDirection(x: x, y: y, dx: dx, dy: dy)
         if !pieces.isEmpty {
           validDirections.append(contentsOf: pieces)
@@ -192,7 +195,7 @@ struct ContentView: View {
       }
     }
     print("check",validDirections)
-    
+
     if !validDirections.isEmpty {
       board[x][y] = turn
       // 有効な方向の駒を反転
@@ -203,20 +206,20 @@ struct ContentView: View {
       PiceCounts()
       print("次のターン", turn)
       if isBoardFull(){
-        
+
         let winner = blackCount > whiteCount ? "黒の勝ち" : (blackCount < whiteCount ? "白の勝ち" : "引き分け")
         alertTitle = "ゲーム終了"
         alertMessage = "黒: \(blackCount), 白: \(whiteCount), 勝者: \(winner)"
-        
+
         showingAlert = true
         //        resetGame()
       }else{
         checkNextTurnMoves()
-        
+
       }
     }
   }
-  
+
   func isBoardFull() -> Bool {
     for row in board {
       for cell in row {
@@ -227,14 +230,14 @@ struct ContentView: View {
     }
     return true // 全てのマスが埋まっている場合
   }
-  
-  
+
+
   func checkDirection(x: Int, y: Int, dx: Int, dy: Int) -> [(Int, Int)] {
     var newX = x + dx
     var newY = y + dy
     //反転可能なマスを記録
     var piecesToFlip: [(Int, Int)] = []
-    
+
     while newX >= 0 && newX < rows && newY >= 0 && newY < columns {
       if board[newX][newY] == 3 - turn {
         piecesToFlip.append((newX, newY))
@@ -246,10 +249,10 @@ struct ContentView: View {
         break
       }
     }
-    
+
     return []
   }
-  
+
   func checkNextTurnMoves() {
     possibleMoves = []
     for row in 0..<rows {
@@ -263,26 +266,26 @@ struct ContentView: View {
     if possibleMoves.isEmpty{
       passCount+=1
       passMessage = turn == 1 ? "黒がパスしました" : "白がパスしました"
-      
+
       if(passCount >= 2  || blackCount == 0 || whiteCount == 0){
         let winner = blackCount > whiteCount ? "黒の勝ち" : (blackCount < whiteCount ? "白の勝ち" : "引き分け")
         alertTitle = "ゲーム終了"
         alertMessage = "黒: \(blackCount), 白: \(whiteCount), 勝者: \(winner)"
-        
+
         showingAlert = true
         //        resetGame()
       }
     }else{
       passCount = 0
       passMessage = ""
-      
+
     }
   }
-  
+
   func PiceCounts(){
     var newBlackCount = 0
     var newWhiteCount = 0
-    
+
     for row in board {
       for cell in row {
         if cell == 1 {
@@ -292,10 +295,10 @@ struct ContentView: View {
         }
       }
     }
-    
+
     blackCount = newBlackCount
     whiteCount = newWhiteCount
-    
+
   }
   func resetGame() {
     // 盤面を初期状態にリセット
@@ -323,14 +326,14 @@ struct ContentView: View {
       }else if isPossibleMove {
         Rectangle()
           .foregroundColor(Color.yellow.opacity(0.7)) // ハイライト色
-        
+
       } else{
         Rectangle()
           .foregroundColor(pieceColor(piece))
       }
     }
   }
-  
+
   // 駒の状態に応じた色を返す
   func pieceColor(_ piece: Int) -> Color {
     switch piece {
