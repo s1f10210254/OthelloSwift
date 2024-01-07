@@ -13,17 +13,19 @@ struct ContentView: View {
   @State private var board: [[Int]] = Array(repeating: Array(repeating: 0, count: 8), count: 8)
   @State private var turn: Int = 1
   @State private var passCount: Int = 0
-  @State private var showingAlert = false
-  @State private var alertTitle = ""
-  @State private var alertMessage = ""
+  @State private var showingAlert:Bool = false
+  @State private var alertTitle:String = ""
+  @State private var alertMessage:String = ""
 
 
   var body: some View {
+    Text("OthelloGame")
+      .font(.largeTitle)
+
     Text(turn == 1 ? "黒のターン" : "白のターン")
       .font(.headline)
       .padding()
     VStack(spacing:1){
-
       ForEach(0..<rows, id: \.self) { row in
         HStack (spacing:1){
           ForEach(0..<columns, id: \.self) { column in
@@ -64,25 +66,25 @@ struct ContentView: View {
   }
 
 
-//   マスがクリックされたときの処理
-    func onClick(x: Int, y: Int) {
-      print("マス (\(x), \(y))がクリックされました")
-      if board[x][y] == 0 && isMoveValid(x: x, y: y){
-        updateBoard(x: x, y: y)
-      }
-  
+  //   マスがクリックされたときの処理
+  func onClick(x: Int, y: Int) {
+    print("マス (\(x), \(y))がクリックされました")
+    if board[x][y] == 0 && isMoveValid(x: x, y: y){
+      updateBoard(x: x, y: y)
     }
 
+  }
 
-//  // 盤面を更新する
-//  func updateBoard(x: Int, y: Int, validDirections: [(Int, Int)]) {
-//    board[x][y] = turn
-//    for (flipX, flipY) in validDirections {
-//      board[flipX][flipY] = turn
-//    }
-//    turn = 3 - turn
-//    print("次のターン", turn)
-//  }
+
+  //  // 盤面を更新する
+  //  func updateBoard(x: Int, y: Int, validDirections: [(Int, Int)]) {
+  //    board[x][y] = turn
+  //    for (flipX, flipY) in validDirections {
+  //      board[flipX][flipY] = turn
+  //    }
+  //    turn = 3 - turn
+  //    print("次のターン", turn)
+  //  }
 
   // 指定されたマスに駒を置くことが有効かどうかを判断
   func isMoveValid(x: Int, y: Int) -> Bool {
@@ -105,39 +107,39 @@ struct ContentView: View {
     return validDirections
   }
 
-    func updateBoard(x: Int, y: Int) {
-      var validDirections: [(Int, Int)] = []
-  
-      // 盤面の範囲内で隣接するマスを確認
-      for dx in -1...1 {
-        for dy in -1...1 {
-          if dx == 0 && dy == 0 { continue } // 同じマスはスキップ
-  
-          let pieces = checkDirection(x: x, y: y, dx: dx, dy: dy)
-          if !pieces.isEmpty {
-            validDirections.append(contentsOf: pieces)
-          }
+  func updateBoard(x: Int, y: Int) {
+    var validDirections: [(Int, Int)] = []
+
+    // 盤面の範囲内で隣接するマスを確認
+    for dx in -1...1 {
+      for dy in -1...1 {
+        if dx == 0 && dy == 0 { continue } // 同じマスはスキップ
+
+        let pieces = checkDirection(x: x, y: y, dx: dx, dy: dy)
+        if !pieces.isEmpty {
+          validDirections.append(contentsOf: pieces)
         }
       }
-  
-      if !validDirections.isEmpty {
-        board[x][y] = turn
-        // 有効な方向の駒を反転
-        for (flipX, flipY) in validDirections {
-          board[flipX][flipY] = turn
-        }
-        turn = 3 - turn
-        passCount = 0
-        print("次のターン", turn)
-      }else{
-        turn = 3 - turn
-        passCount += 1
-        alertTitle = passCount == 2 ? "ゲーム終了": "パスしました"
-        alertMessage = passCount == 2 ? "パスが2回連続しました。" : "置けるコマがありません。"
-        showingAlert = true // アラートを表示
-      }
-  
     }
+
+    if !validDirections.isEmpty {
+      board[x][y] = turn
+      // 有効な方向の駒を反転
+      for (flipX, flipY) in validDirections {
+        board[flipX][flipY] = turn
+      }
+      turn = 3 - turn
+      passCount = 0
+      print("次のターン", turn)
+    }else{
+      turn = 3 - turn
+      passCount += 1
+      alertTitle = passCount == 2 ? "ゲーム終了": "パスしました"
+      alertMessage = passCount == 2 ? "パスが2回連続しました。" : "置けるコマがありません。"
+      showingAlert = true // アラートを表示
+    }
+
+  }
 
 
   func checkDirection(x: Int, y: Int, dx: Int, dy: Int) -> [(Int, Int)] {
