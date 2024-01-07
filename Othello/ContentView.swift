@@ -42,7 +42,7 @@ struct ContentView: View {
   @State private var possibleMoves: [(Int, Int)] = []
   @State private var blackCount: Int = 0
   @State private var whiteCount: Int = 0
-
+  @State private var passMessage: String = ""
 
   init() {
     _board = State(initialValue: finalBoard5) // 初期状態で初期化
@@ -80,7 +80,9 @@ struct ContentView: View {
         Alert(
           title: Text(alertTitle),
           message: Text(alertMessage),
-          dismissButton: .default(Text("OK"))
+          dismissButton: .default(Text("OK"), action: {
+            resetGame()
+          })
         )
       }
 
@@ -163,10 +165,13 @@ struct ContentView: View {
       PiceCounts()
       print("次のターン", turn)
       if isBoardFull(){
+
+        let winner = blackCount > whiteCount ? "黒の勝ち" : (blackCount < whiteCount ? "白の勝ち" : "引き分け")
         alertTitle = "ゲーム終了"
-        alertMessage = ""
+        alertMessage = "黒: \(blackCount), 白: \(whiteCount), 勝者: \(winner)"
+
         showingAlert = true
-        resetGame()
+//        resetGame()
       }else{
         checkNextTurnMoves()
 
@@ -219,14 +224,20 @@ struct ContentView: View {
     print("次のターンの可能な手: \(possibleMoves)")
     if possibleMoves.isEmpty{
       passCount+=1
-      alertTitle = "パス"
-      alertMessage = "ターンが切り替わりました"
-      showingAlert = true
+      passMessage = turn == 1 ? "黒がパスしました" : "白がパスしました"
+
       if(passCount >= 2){
-        resetGame()
+        let winner = blackCount > whiteCount ? "黒の勝ち" : (blackCount < whiteCount ? "白の勝ち" : "引き分け")
+        alertTitle = "ゲーム終了"
+        alertMessage = "黒: \(blackCount), 白: \(whiteCount), 勝者: \(winner)"
+
+        showingAlert = true
+//        resetGame()
       }
     }else{
       passCount = 0
+      passMessage = ""
+
     }
   }
 
